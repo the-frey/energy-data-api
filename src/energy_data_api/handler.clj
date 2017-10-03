@@ -3,12 +3,11 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
 
-(s/defschema Pizza
-  {:name s/Str
-   (s/optional-key :description) s/Str
-   :size (s/enum :L :M :S)
-   :origin {:country (s/enum :FI :PO)
-            :city s/Str}})
+(s/defschema SiteDailyEnergyStream
+  {:site-id s/Int
+   :recorded-at s/Int
+   :results [{:time s/Str
+              :result s/Int}]})
 
 (def app
   (api
@@ -20,16 +19,18 @@
              :tags [{:name "api", :description "some apis"}]}}}
 
     (context "/api" []
-      :tags ["api"]
+             :tags ["api"]
 
-      (GET "/plus" []
-        :return {:result Long}
-        :query-params [x :- Long, y :- Long]
-        :summary "adds two numbers together"
-        (ok {:result (+ x y)}))
+             (context "/v1" []
+                      :tags ["v1"]
 
-      (POST "/echo" []
-        :return Pizza
-        :body [pizza Pizza]
-        :summary "echoes a Pizza"
-        (ok pizza)))))
+                      (GET "/site-daily-stream" []
+                           :return SiteDailyEnergyStream
+                           :query-params [site-id :- String, recorded-at :- String]
+                           :summary "Gets a stream for a site and a recorded at value."
+                           (ok {:site-id (Integer/parseInt site-id)
+                                :recorded-at (Integer/parseInt recorded-at)
+                                :results [{:time "example1"
+                                           :result 123}
+                                          {:time "example2"
+                                           :result 234}]}))))))
